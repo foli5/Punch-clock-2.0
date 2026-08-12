@@ -1,10 +1,10 @@
 
 :root {
   --guinda: #00095B;
-  --dorado: #B08D57;
+  --dorado: #1B4E9B;
   --gris: #5A5A5A;
   --azul: #005B96;
-  --claro: #F7F5F2;
+  --claro: #003478;
 }
 * { box-sizing: border-box; }
 body {
