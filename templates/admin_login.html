@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
 <body>
   <div class="top-bar"><h1>CHECADOR CORPORATIVO - ADMIN</h1>
-  <div class="logo-placeholder">ESPACIO PARA<br>LOGO DE LA EMPRESA</div></div>
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo de la empresa" style="height: 50px;">
   <div class="container">
     <h2>Acceso Administrador</h2>
     {% with messages = get_flashed_messages(with_categories=true) %}
