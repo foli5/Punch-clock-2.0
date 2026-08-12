@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><title>Panel Admin - Checador</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+  <div class="top-bar"><h1>PANEL DE ADMINISTRADOR</h1>
+  <div class="logo-placeholder">ESPACIO PARA<br>LOGO DE LA EMPRESA</div></div>
+  <div class="container wide">
+    <h2>Reporte diario de asistencia</h2>
+    <form method="GET" class="filters">
+      <input type="date" name="fecha" value="{{ fecha_filtro }}">
+      <button type="submit">Ver</button>
+    </form>
+    <table>
+      <tr>
+        <th>Empleado</th><th>Hora Entrada Esperada</th><th>Hora Entrada Real</th>
+        <th>Hora Salida Esperada</th><th>Hora Salida Real</th><th>Horas Trabajadas</th>
+        <th>Retardo (min)</th><th>Falta</th><th>Tiempo Faltante (hrs)</th>
+      </tr>
+      {% for fila in filas %}
+      <tr>
+        <td>{{ fila.empleado }}</td>
+        <td>{{ fila.hora_entrada_esperada }}</td>
+        <td>{{ fila.hora_entrada_real or '-' }}</td>
+        <td>{{ fila.hora_salida_esperada }}</td>
+        <td>{{ fila.hora_salida_real or '-' }}</td>
+        <td>{{ fila.horas_trabajadas }}</td>
+        <td>{% if fila.retardo_min and fila.retardo_min > 0 %}<span class="badge-retardo">{{ fila.retardo_min }} min</span>{% else %}0{% endif %}</td>
+        <td>{% if fila.falta %}<span class="badge-falta">Sí</span>{% else %}<span class="badge-ok">No</span>{% endif %}</td>
+        <td>{{ fila.tiempo_faltante_horas }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <h3 style="color:#5F142D; margin-top:30px;">Exportar reporte a Excel</h3>
+    <form method="GET" action="{{ url_for('admin_exportar') }}" class="filters">
+      <input type="date" name="inicio" required placeholder="Fecha inicio">
+      <input type="date" name="fin" required placeholder="Fecha fin">
+      <button type="submit" class="btn">Exportar Excel</button>
+    </form>
+    <p class="footer-note">
+      <a href="{{ url_for('admin_empleados') }}">Gestionar empleados</a> |
+      <a href="{{ url_for('admin_logout') }}">Cerrar sesión</a>
+    </p>
+  </div>
+</body></html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><title>Empleados - Checador</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+  <div class="top-bar"><h1>GESTIÓN DE EMPLEADOS</h1>
+  <div class="logo-placeholder">ESPACIO PARA<br>LOGO DE LA EMPRESA</div></div>
+  <div class="container wide">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for category, message in messages %}
+        <div class="msg {{ category }}">{{ message }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <h2>Agregar nuevo empleado</h2>
+    <form method="POST">
+      <input type="text" name="nombre" placeholder="Nombre completo" required>
+      <input type="text" name="pin" placeholder="PIN único (ej. número de empleado)" required>
+      <label>Hora de entrada:</label>
+      <input type="time" name="hora_entrada" required>
+      <label>Hora de salida:</label>
+      <input type="time" name="hora_salida" required>
+      <input type="number" step="0.5" name="jornada_horas" placeholder="Horas de jornada (ej. 8)" required>
+      <button type="submit">Agregar empleado</button>
+    </form>
+    <h2 style="margin-top:30px;">Empleados activos</h2>
+    <table>
+      <tr><th>Nombre</th><th>PIN</th><th>Entrada</th><th>Salida</th><th>Jornada (hrs)</th><th>Acción</th></tr>
+      {% for e in empleados %}
+      <tr>
+        <td>{{ e.nombre }}</td><td>{{ e.pin }}</td><td>{{ e.hora_entrada }}</td>
+        <td>{{ e.hora_salida }}</td><td>{{ e.jornada_horas }}</td>
+        <td><a href="{{ url_for('eliminar_empleado', emp_id=e.id) }}" onclick="return confirm('¿Eliminar este empleado?');">Eliminar</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p class="footer-note"><a href="{{ url_for('admin_panel') }}">Volver al panel</a></p>
+  </div>
+</body></html>

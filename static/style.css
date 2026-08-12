@@ -1,0 +1,55 @@
+
+:root {
+  --guinda: #5F142D;
+  --dorado: #B08D57;
+  --gris: #5A5A5A;
+  --azul: #005B96;
+  --claro: #F7F5F2;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(180deg, var(--guinda) 0%, var(--claro) 55%);
+  margin: 0; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+}
+.top-bar {
+  width: 100%; background: white; padding: 18px 30px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 4px solid var(--dorado);
+}
+.top-bar h1 { color: var(--guinda); font-size: 20px; margin: 0; }
+.logo-placeholder {
+  border: 2px dashed var(--dorado); color: var(--gris); font-size: 11px;
+  padding: 8px 14px; border-radius: 6px; text-align: center;
+}
+.container {
+  max-width: 480px; width: 90%; background: white; margin-top: 40px;
+  padding: 30px; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center;
+}
+.container.wide { max-width: 900px; }
+h2 { color: var(--guinda); }
+input[type=text], input[type=password], input[type=time], input[type=number], input[type=date] {
+  width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 15px;
+}
+button, .btn {
+  background: var(--azul); color: white; border: none; padding: 13px 20px; border-radius: 8px;
+  font-size: 15px; cursor: pointer; margin: 8px 4px; text-decoration: none; display: inline-block;
+}
+button.entrada { background: #2e8b57; }
+button.salida { background: var(--guinda); }
+button:hover { opacity: 0.9; }
+.msg { padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
+.msg.success { background: #e3f7e9; color: #1c6b3a; }
+.msg.error { background: #fdeaea; color: #a4232b; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+th { background: var(--guinda); color: white; padding: 8px; }
+td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+tr:nth-child(even) { background: #faf8f6; }
+.badge-falta { color: white; background: #b02a37; padding: 3px 8px; border-radius: 10px; font-size: 12px; }
+.badge-ok { color: white; background: #2e8b57; padding: 3px 8px; border-radius: 10px; font-size: 12px; }
+.badge-retardo { color: white; background: var(--dorado); padding: 3px 8px; border-radius: 10px; font-size: 12px; }
+.nombre-empleado { font-size: 18px; color: var(--gris); margin-bottom: 20px; }
+.status { font-size: 14px; color: var(--gris); margin-top: 10px; }
+.footer-note { font-size: 12px; color: var(--gris); margin-top: 25px; }
+.filters { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }

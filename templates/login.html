@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checador - Iniciar sesión</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+  <div class="top-bar"><h1>CHECADOR CORPORATIVO</h1>
+  <div class="logo-placeholder">ESPACIO PARA<br>LOGO DE LA EMPRESA</div></div>
+  <div class="container">
+    <h2>Iniciar sesión</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for category, message in messages %}
+        <div class="msg {{ category }}">{{ message }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <form method="POST">
+      <input type="password" name="pin" placeholder="Ingresa tu PIN de empleado" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <p class="footer-note"><a href="{{ url_for('admin_login') }}">Acceso administrador</a></p>
+  </div>
+</body></html>

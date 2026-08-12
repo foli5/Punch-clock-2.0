@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checador</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+  <div class="top-bar"><h1>CHECADOR CORPORATIVO</h1>
+  <div class="logo-placeholder">ESPACIO PARA<br>LOGO DE LA EMPRESA</div></div>
+  <div class="container">
+    <h2>Bienvenido/a</h2>
+    <p class="nombre-empleado">{{ nombre }}</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for category, message in messages %}
+        <div class="msg {{ category }}">{{ message }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <p class="status" id="status">Obteniendo tu ubicación...</p>
+    <form id="formEntrada" method="POST" action="{{ url_for('marcar') }}">
+      <input type="hidden" name="tipo" value="entrada">
+      <input type="hidden" name="lat" id="lat_entrada">
+      <input type="hidden" name="lon" id="lon_entrada">
+      <button type="submit" class="entrada" id="btnEntrada" disabled>Marcar Entrada</button>
+    </form>
+    <form id="formSalida" method="POST" action="{{ url_for('marcar') }}">
+      <input type="hidden" name="tipo" value="salida">
+      <input type="hidden" name="lat" id="lat_salida">
+      <input type="hidden" name="lon" id="lon_salida">
+      <button type="submit" class="salida" id="btnSalida" disabled>Marcar Salida</button>
+    </form>
+    <p class="footer-note"><a href="{{ url_for('logout') }}">Cerrar sesión</a></p>
+  </div>
+<script>
+function actualizarUbicacion() {
+  const status = document.getElementById('status');
+  if (!navigator.geolocation) { status.innerText = "Tu navegador no soporta geolocalización."; return; }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    document.getElementById('lat_entrada').value = lat;
+    document.getElementById('lon_entrada').value = lon;
+    document.getElementById('lat_salida').value = lat;
+    document.getElementById('lon_salida').value = lon;
+    status.innerText = "Ubicación detectada correctamente.";
+    document.getElementById('btnEntrada').disabled = false;
+    document.getElementById('btnSalida').disabled = false;
+  }, function(err) {
+    status.innerText = "No se pudo obtener tu ubicación. Activa el GPS y recarga la página.";
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+actualizarUbicacion();
+</script>
+</body></html>

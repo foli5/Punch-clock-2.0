@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><title>Admin - Checador</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+  <div class="top-bar"><h1>CHECADOR CORPORATIVO - ADMIN</h1>
+  <div class="logo-placeholder">ESPACIO PARA<br>LOGO DE LA EMPRESA</div></div>
+  <div class="container">
+    <h2>Acceso Administrador</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for category, message in messages %}
+        <div class="msg {{ category }}">{{ message }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+    <form method="POST">
+      <input type="password" name="password" placeholder="Contraseña de administrador" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <p class="footer-note"><a href="{{ url_for('login') }}">Volver al checador</a></p>
+  </div>
+</body></html>
