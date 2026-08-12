@@ -19,7 +19,7 @@ app.secret_key = "cambia_esta_llave_por_una_segura"
 
 OFFICE_LAT = 19.4925
 OFFICE_LON = -99.2564
-RADIUS_METERS = 100
+RADIUS_METERS = 500
 TOLERANCIA_MIN = 10
 
 logging.basicConfig(level=logging.INFO)
