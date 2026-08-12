@@ -147,7 +147,7 @@ def marcar():
 
     dentro = dentro_de_zona(lat, lon)
     if not dentro:
-        flash("Estás fuera del rango permitido del corporativo (100 m). No se registró el marcaje.", "error")
+        flash("Estás fuera del rango permitido del corporativo (500 m). No se registró el marcaje.", "error")
         return redirect(url_for("checador"))
 
     employee_id = session["employee_id"]
