@@ -192,7 +192,7 @@ def logout():
     return redirect(url_for("login"))
 
 
-ADMIN_PASSWORD = "admin123"  # CAMBIAR antes de usar en producción
+ADMIN_PASSWORD = "beisbol5"  # CAMBIAR antes de usar en producción
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
