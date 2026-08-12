@@ -17,8 +17,8 @@ DB_PATH = os.path.join(BASE_DIR, "checador.db")
 app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 app.secret_key = "cambia_esta_llave_por_una_segura"
 
-OFFICE_LAT = 19.4925
-OFFICE_LON = -99.2564
+OFFICE_LAT = 19.524624957970637
+OFFICE_LON = -99.28967371001026
 RADIUS_METERS = 500
 TOLERANCIA_MIN = 10
 
