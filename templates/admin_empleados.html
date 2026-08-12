@@ -2,9 +2,8 @@
 <html lang="es"><head><meta charset="UTF-8"><title>Empleados - Checador</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
 <body>
-  <div class="top-bar">
-    <h1>GESTIÓN DE EMPLEADOS</h1>
-  <img src="{{ url_for('static', filename='logo') }}" alt="Logo de la empresa" style="height: 50px;">
+  <div class="top-bar"><h1>GESTIÓN DE EMPLEADOS</h1>
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo de la empresa" style="height: 50px;"></div>
   <div class="container wide">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}{% for category, message in messages %}
