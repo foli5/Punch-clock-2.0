@@ -19,7 +19,7 @@ body {
   border-bottom: 4px solid var(--dorado);
 }
 .top-bar img { max-height: 170px; object-fit: contain; }
-.top-bar h1 { color: white; font-size: 80px; margin: 0; }
+.top-bar h1 { color: white; font-size: 60px; margin: 0; }
 .logo-placeholder {
   border: 2px dashed var(--dorado); color: var(--gris); font-size: 11px;
   padding: 8px 14px; border-radius: 6px; text-align: center;
