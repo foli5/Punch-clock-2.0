@@ -1,10 +1,13 @@
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, send_from_directory
 import sqlite3
 from datetime import datetime, timedelta, date
 import math
 import io
 import os
+import base64
+import threading
+import time
 import logging
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -13,6 +16,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 DB_PATH = os.path.join(BASE_DIR, "checador.db")
+CARPETA_FOTOS = os.path.join(BASE_DIR, "fotos_checadas")
+
+os.makedirs(CARPETA_FOTOS, exist_ok=True)
 
 app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 app.secret_key = "cambia_esta_llave_por_una_segura"
@@ -21,6 +27,7 @@ OFFICE_LAT = 19.524624957970637
 OFFICE_LON = -99.28967371001026
 RADIUS_METERS = 500
 TOLERANCIA_MIN = 10
+DIAS_RETENCION_FOTOS = 30
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,6 +79,30 @@ def init_db():
     """)
     conn.commit()
 
+    # --- Migraciones para disclaimer y fotos (seguras si ya existen las columnas) ---
+    columnas_employees_nuevas = {
+        "acepto_aviso": "INTEGER DEFAULT 0",
+        "fecha_aceptacion": "TEXT",
+    }
+    columnas_attendance_nuevas = {
+        "foto_entrada": "TEXT",
+        "foto_salida": "TEXT",
+    }
+
+    c.execute("PRAGMA table_info(employees)")
+    cols_emp = [fila["name"] for fila in c.fetchall()]
+    for col, tipo in columnas_employees_nuevas.items():
+        if col not in cols_emp:
+            c.execute(f"ALTER TABLE employees ADD COLUMN {col} {tipo}")
+
+    c.execute("PRAGMA table_info(attendance)")
+    cols_att = [fila["name"] for fila in c.fetchall()]
+    for col, tipo in columnas_attendance_nuevas.items():
+        if col not in cols_att:
+            c.execute(f"ALTER TABLE attendance ADD COLUMN {col} {tipo}")
+
+    conn.commit()
+
     c.execute("SELECT COUNT(*) as cnt FROM employees")
     if c.fetchone()["cnt"] == 0:
         ejemplo = [
@@ -105,6 +136,45 @@ def dentro_de_zona(lat, lon):
     return dist <= RADIUS_METERS
 
 
+def guardar_foto(foto_base64, pin, tipo):
+    """Guarda la foto capturada en base64 y devuelve el nombre de archivo generado."""
+    if not foto_base64:
+        return None
+    try:
+        encabezado, datos = foto_base64.split(",", 1)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        nombre_foto = f"{pin}_{tipo}_{timestamp}.jpg"
+        ruta_foto = os.path.join(CARPETA_FOTOS, nombre_foto)
+        with open(ruta_foto, "wb") as f:
+            f.write(base64.b64decode(datos))
+        return nombre_foto
+    except Exception as e:
+        logger.exception("Error guardando foto: %s", e)
+        return None
+
+
+def limpiar_fotos_viejas():
+    """Hilo en segundo plano: borra fotos con más de DIAS_RETENCION_FOTOS días de antigüedad."""
+    while True:
+        try:
+            ahora = datetime.now()
+            if os.path.isdir(CARPETA_FOTOS):
+                for nombre_archivo in os.listdir(CARPETA_FOTOS):
+                    ruta = os.path.join(CARPETA_FOTOS, nombre_archivo)
+                    if not os.path.isfile(ruta):
+                        continue
+                    fecha_creacion = datetime.fromtimestamp(os.path.getctime(ruta))
+                    if ahora - fecha_creacion > timedelta(days=DIAS_RETENCION_FOTOS):
+                        try:
+                            os.remove(ruta)
+                            logger.info("Foto eliminada por antigüedad (30 días): %s", nombre_archivo)
+                        except Exception as e:
+                            logger.exception("Error eliminando foto %s: %s", nombre_archivo, e)
+        except Exception as e:
+            logger.exception("Error en el hilo de limpieza de fotos: %s", e)
+        time.sleep(24 * 60 * 60)  # revisa una vez al día
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -115,10 +185,38 @@ def login():
         if emp:
             session["employee_id"] = emp["id"]
             session["employee_nombre"] = emp["nombre"]
+            session["employee_pin"] = emp["pin"]
+
+            if not emp["acepto_aviso"]:
+                return redirect(url_for("aviso_privacidad"))
+
             return redirect(url_for("checador"))
         else:
             flash("PIN no válido. Verifica con tu administrador.", "error")
     return render_template("login.html")
+
+
+@app.route("/aviso-privacidad", methods=["GET", "POST"])
+def aviso_privacidad():
+    if "employee_id" not in session:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        acepto = request.form.get("acepto_aviso") == "on"
+        if not acepto:
+            flash("Debes aceptar el aviso de privacidad para continuar.", "error")
+            return render_template("aviso_privacidad.html")
+
+        conn = get_db()
+        conn.execute(
+            "UPDATE employees SET acepto_aviso=1, fecha_aceptacion=? WHERE id=?",
+            (datetime.now().isoformat(timespec="seconds"), session["employee_id"])
+        )
+        conn.commit()
+        conn.close()
+        return redirect(url_for("checador"))
+
+    return render_template("aviso_privacidad.html")
 
 
 @app.route("/checador")
@@ -137,6 +235,7 @@ def marcar():
     tipo = request.form.get("tipo")
     lat = request.form.get("lat")
     lon = request.form.get("lon")
+    foto_base64 = request.form.get("foto")
 
     try:
         lat = float(lat)
@@ -151,8 +250,11 @@ def marcar():
         return redirect(url_for("checador"))
 
     employee_id = session["employee_id"]
+    pin = session.get("employee_pin", "sinpin")
     hoy = date.today().isoformat()
     ahora = datetime.now().strftime("%H:%M:%S")
+
+    nombre_foto = guardar_foto(foto_base64, pin, tipo)
 
     conn = get_db()
     registro = conn.execute(
@@ -164,8 +266,10 @@ def marcar():
             flash("Ya tienes registrada tu entrada de hoy.", "error")
         else:
             conn.execute(
-                "INSERT INTO attendance (employee_id, fecha, hora_entrada_real, lat_entrada, lon_entrada, dentro_zona_entrada) VALUES (?,?,?,?,?,?)",
-                (employee_id, hoy, ahora, lat, lon, 1)
+                """INSERT INTO attendance
+                   (employee_id, fecha, hora_entrada_real, lat_entrada, lon_entrada, dentro_zona_entrada, foto_entrada)
+                   VALUES (?,?,?,?,?,?,?)""",
+                (employee_id, hoy, ahora, lat, lon, 1, nombre_foto)
             )
             conn.commit()
             flash(f"Entrada registrada correctamente a las {ahora}.", "success")
@@ -176,8 +280,10 @@ def marcar():
             flash("Ya tienes registrada tu salida de hoy.", "error")
         else:
             conn.execute(
-                "UPDATE attendance SET hora_salida_real=?, lat_salida=?, lon_salida=?, dentro_zona_salida=? WHERE id=?",
-                (ahora, lat, lon, 1, registro["id"])
+                """UPDATE attendance
+                   SET hora_salida_real=?, lat_salida=?, lon_salida=?, dentro_zona_salida=?, foto_salida=?
+                   WHERE id=?""",
+                (ahora, lat, lon, 1, nombre_foto, registro["id"])
             )
             conn.commit()
             flash(f"Salida registrada correctamente a las {ahora}.", "success")
@@ -206,6 +312,13 @@ def admin_login():
     return render_template("admin_login.html")
 
 
+@app.route("/foto/<nombre>")
+def ver_foto(nombre):
+    if not session.get("is_admin"):
+        return "No autorizado", 403
+    return send_from_directory(CARPETA_FOTOS, nombre)
+
+
 def calcular_metricas(emp, registro):
     resultado = {
         "hora_entrada_esperada": emp["hora_entrada"],
@@ -213,6 +326,8 @@ def calcular_metricas(emp, registro):
         "jornada_esperada_horas": emp["jornada_horas"],
         "hora_entrada_real": registro["hora_entrada_real"] if registro else None,
         "hora_salida_real": registro["hora_salida_real"] if registro else None,
+        "foto_entrada": registro["foto_entrada"] if registro else None,
+        "foto_salida": registro["foto_salida"] if registro else None,
         "horas_trabajadas": 0.0,
         "retardo_min": 0,
         "falta": False,
@@ -383,6 +498,9 @@ try:
     init_db()
 except Exception as e:
     logger.exception("Error inicializando la base de datos: %s", e)
+
+# Hilo en segundo plano que borra fotos con más de 30 días de antigüedad
+threading.Thread(target=limpiar_fotos_viejas, daemon=True).start()
 
 
 if __name__ == "__main__":
