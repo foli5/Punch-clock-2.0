@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, send_from_directory
 import sqlite3
 from datetime import datetime, timedelta, date
+from zoneinfo import ZoneInfo
 import math
 import io
 import os
@@ -28,6 +29,16 @@ OFFICE_LON = -99.28967371001026
 RADIUS_METERS = 500
 TOLERANCIA_MIN = 10
 DIAS_RETENCION_FOTOS = 30
+
+# --- Zona horaria de México (evita el desfase de 6 horas del servidor en UTC) ---
+MEXICO_TZ = ZoneInfo("America/Mexico_City")
+
+
+def ahora_mexico():
+    """Devuelve la fecha y hora actual correctamente ajustada a México,
+    sin importar en qué zona horaria corra el servidor (Render usa UTC)."""
+    return datetime.now(MEXICO_TZ)
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -251,6 +262,7 @@ def marcar():
 
     employee_id = session["employee_id"]
     pin = session.get("employee_pin", "sinpin")
+
     ahora_dt = ahora_mexico()
     hoy = ahora_dt.date().isoformat()
     ahora = ahora_dt.strftime("%H:%M:%S")
@@ -369,7 +381,7 @@ def admin_panel():
     conn = get_db()
     empleados = conn.execute("SELECT * FROM employees WHERE activo=1").fetchall()
 
-    fecha_filtro = request.args.get("fecha", date.today().isoformat())
+    fecha_filtro = request.args.get("fecha", ahora_mexico().date().isoformat())
 
     filas = []
     for emp in empleados:
@@ -391,9 +403,9 @@ def admin_exportar():
     fecha_inicio = request.args.get("inicio")
     fecha_fin = request.args.get("fin")
     if not fecha_inicio:
-        fecha_inicio = date.today().isoformat()
+        fecha_inicio = ahora_mexico().date().isoformat()
     if not fecha_fin:
-        fecha_fin = date.today().isoformat()
+        fecha_fin = ahora_mexico().date().isoformat()
 
     conn = get_db()
     empleados = conn.execute("SELECT * FROM employees WHERE activo=1").fetchall()
