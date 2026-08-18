@@ -15,6 +15,7 @@
         <th>Empleado</th><th>Hora Entrada Esperada</th><th>Hora Entrada Real</th>
         <th>Hora Salida Esperada</th><th>Hora Salida Real</th><th>Horas Trabajadas</th>
         <th>Retardo (min)</th><th>Falta</th><th>Tiempo Faltante (hrs)</th>
+        <th>Foto Entrada</th><th>Foto Salida</th>
       </tr>
       {% for fila in filas %}
       <tr>
@@ -27,6 +28,24 @@
         <td>{% if fila.retardo_min and fila.retardo_min > 0 %}<span class="badge-retardo">{{ fila.retardo_min }} min</span>{% else %}0{% endif %}</td>
         <td>{% if fila.falta %}<span class="badge-falta">Sí</span>{% else %}<span class="badge-ok">No</span>{% endif %}</td>
         <td>{{ fila.tiempo_faltante_horas }}</td>
+        <td>
+          {% if fila.foto_entrada %}
+            <a href="{{ url_for('ver_foto', nombre=fila.foto_entrada) }}" target="_blank">
+              <img src="{{ url_for('ver_foto', nombre=fila.foto_entrada) }}" alt="Foto entrada" style="width:50px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;">
+            </a>
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td>
+          {% if fila.foto_salida %}
+            <a href="{{ url_for('ver_foto', nombre=fila.foto_salida) }}" target="_blank">
+              <img src="{{ url_for('ver_foto', nombre=fila.foto_salida) }}" alt="Foto salida" style="width:50px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;">
+            </a>
+          {% else %}
+            —
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </table>

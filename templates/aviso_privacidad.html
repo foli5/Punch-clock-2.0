@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aviso de Privacidad - Checador</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+  <div class="top-bar"><h1>CHECADOR CORPORATIVO</h1>
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo de la empresa" style="height: 170px;"></div>
+  <div class="container">
+    <h2>📋 Aviso de Privacidad</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for category, message in messages %}
+        <div class="msg {{ category }}">{{ message }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div style="background:#fff8e1; border:1px solid #f0c14b; border-radius:8px; padding:14px; margin:15px 0; font-size:14px; color:#5c4300; line-height:1.5; text-align:left;">
+      Al usar este sistema de checador, cada vez que marques tu entrada o salida se tomará una
+      <strong>fotografía</strong> y se registrará tu <strong>ubicación</strong>, únicamente con fines de
+      control de asistencia y para prevenir el registro fraudulento por parte de terceros.
+      <br><br>
+      Esta información será tratada de forma confidencial, con acceso restringido solo a personal
+      autorizado de Recursos Humanos, y será <strong>eliminada automáticamente después de 30 días</strong>.
+      No se usará para ningún otro fin.
+    </div>
+
+    <form method="POST">
+      <label style="display:flex; align-items:center; gap:8px; font-size:14px; margin:15px 0; text-align:left;">
+        <input type="checkbox" name="acepto_aviso" id="aceptoAviso" required>
+        He leído y acepto este aviso de privacidad y no necesito que se me muestre nuevamente.
+      </label>
+      <button type="submit" class="entrada">Aceptar y continuar</button>
+    </form>
+
+    <p class="footer-note"><a href="{{ url_for('logout') }}">Cerrar sesión</a></p>
+  </div>
+</body></html>
