@@ -142,7 +142,7 @@ def guardar_foto(foto_base64, pin, tipo):
         return None
     try:
         encabezado, datos = foto_base64.split(",", 1)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        timestamp = ahora_mexico().strftime("%Y%m%d_%H%M%S_%f")
         nombre_foto = f"{pin}_{tipo}_{timestamp}.jpg"
         ruta_foto = os.path.join(CARPETA_FOTOS, nombre_foto)
         with open(ruta_foto, "wb") as f:
@@ -157,13 +157,13 @@ def limpiar_fotos_viejas():
     """Hilo en segundo plano: borra fotos con más de DIAS_RETENCION_FOTOS días de antigüedad."""
     while True:
         try:
-            ahora = datetime.now()
+            ahora = ahora_mexico()
             if os.path.isdir(CARPETA_FOTOS):
                 for nombre_archivo in os.listdir(CARPETA_FOTOS):
                     ruta = os.path.join(CARPETA_FOTOS, nombre_archivo)
                     if not os.path.isfile(ruta):
                         continue
-                    fecha_creacion = datetime.fromtimestamp(os.path.getctime(ruta))
+                    fecha_creacion = datetime.fromtimestamp(os.path.getctime(ruta), tz=MEXICO_TZ)
                     if ahora - fecha_creacion > timedelta(days=DIAS_RETENCION_FOTOS):
                         try:
                             os.remove(ruta)
@@ -210,7 +210,7 @@ def aviso_privacidad():
         conn = get_db()
         conn.execute(
             "UPDATE employees SET acepto_aviso=1, fecha_aceptacion=? WHERE id=?",
-            (datetime.now().isoformat(timespec="seconds"), session["employee_id"])
+            (ahora_mexico().isoformat(timespec="seconds"), session["employee_id"])
         )
         conn.commit()
         conn.close()
@@ -251,8 +251,9 @@ def marcar():
 
     employee_id = session["employee_id"]
     pin = session.get("employee_pin", "sinpin")
-    hoy = date.today().isoformat()
-    ahora = datetime.now().strftime("%H:%M:%S")
+    ahora_dt = ahora_mexico()
+    hoy = ahora_dt.date().isoformat()
+    ahora = ahora_dt.strftime("%H:%M:%S")
 
     nombre_foto = guardar_foto(foto_base64, pin, tipo)
 
